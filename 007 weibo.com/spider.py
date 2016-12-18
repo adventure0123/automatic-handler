@@ -13,7 +13,7 @@ import traceback
 
 
 class weibo:
-    cookie = {"Cookie": "SINAGLOBAL=9551661603618.414.1460371957635; YF-Page-G0=a6116b3c8a29f151674a0865cb3ec7fc; _s_tentry=login.sina.com.cn; Apache=5996790349601.595.1481555937948; ULV=1481555938197:8:1:1:5996790349601.595.1481555937948:1480425140103; YF-V5-G0=1312426fba7c62175794755e73312c7d; YF-Ugrow-G0=169004153682ef91866609488943c77f; wb_publish_fist100_2113264853=1; login_sid_t=0680695db216d3bec70641e063a8ec9e; _T_WM=b940f7d879c9ec4c2969f9354a2b3aed; appkey=; SSOLoginState=1481987264; wvr=6; SCF=ArBF6VrKCSuwfUQ3YjQebKebN3L0OQLqRWqIYxvymcPUEC-tvITY-Nq5SW3S_5VOI_qrPOyrRqNy9iB45V7G2Dc.; SUB=_2A251USvBDeTxGeRP6lET9irEzj-IHXVWJxoJrDV8PUNbmtBeLVH8kW8bS5m_uL4z_CW6EN8Ss3jAbREYhQ..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5XzG68C2-Vv-VJQ0i380dG5JpX5K2hUgL.FozpeKeESoBRSKe2dJLoI02LxK.LB.2LBKqLxKML1KBLBo5LxK-LB--L1hnLxKqL1-eL1-zLxKnL1h5L1h-7eKz0; SUHB=0QSoGMCtb6nPnF; ALF=1513525009; un=594645529@qq.com; UOR=,,blog.5long.me"}  # 将your cookie替换成自己的cookie
+    cookie = {"Cookie": "SINAGLOBAL=58.246.118.139_1460371595.484757; U_TRS1=0000008b.cd4a177e.570cb3d9.afba792e; UOR=www.google.com.hk,blog.sina.com.cn,; vjuids=b4f420306.15409a41dae.0.20615148; SCF=ArBF6VrKCSuwfUQ3YjQebKebN3L0OQLqRWqIYxvymcPUQ963KKp3FbDO7yoUpSAdUMBlb1P3zt6gxPNbv_zrHE4.; Apache=180.159.111.123_1481555938.727287; U_TRS2=0000009f.a0e06a72.585023b7.78f0036d; SessionID=900dkls7uknmg1lo9i426ckkm0; ULV=1481647034243:7:1:1:180.159.111.123_1481555938.727287:1480515848389; ULOGIN_IMG=gz-f1258c0a5d8709110886fe5e12347f54b6ba; ALF=1513525009; sso_info=v02m6alo5qztKWRk5yljpOQpZCToKWRk5iljoOgpZCjnLKMk4SzjKOYtI6DlLOJp5WpmYO0soyThLOMo5i0joOUsw==; vjlast=1460450631.1481996718.11; SUB=_2A251UQnuDeTxGeRP6lET9irEzj-IHXVWJ3wmrDV_PUJbm9BeLVnXkW8HT9KeaHCkKXtDEKlntTQeyIa7-g..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5XzG68C2-Vv-VJQ0i380dG5NHD95QEeK20eoqX1h-0Ws4Dqcjpi--4i-iWi-2ci--NiK.Xi-z7i--fi-88iKnRi--ciKLhiKLFi--RiKn7iKnfeh2Ee7tt"}  # 将your cookie替换成自己的cookie
 
     # weibo类初始化
     def __init__(self, user_id, filter=0):
@@ -177,7 +177,7 @@ class weibo:
 
 
 # 使用实例,输入一个用户id，所有信息都会存储在wb实例中
-user_id =2488546442  # 可以改成任意合法的用户id（爬虫的微博id除外）
+user_id =1956479335 # 可以改成任意合法的用户id（爬虫的微博id除外）
 filter = 1  # 值为0表示爬取全部的微博信息（原创微博+转发微博），值为1表示只爬取原创微博
 wb = weibo(user_id, filter)  # 调用weibo类，创建微博实例wb
 wb.start()  # 爬取微博信息

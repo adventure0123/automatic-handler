@@ -11,6 +11,7 @@ Info
 - date   : "2016.3.7"
 '''
 import cookielib
+import json
 import time
 import base64
 import rsa
@@ -26,6 +27,7 @@ try:
     from urllib.parse import quote_plus
 except:
     from urllib import quote_plus
+import cookies_new
 
 '''
 如果没有开启登录保护，不用输入验证码就可以登录
@@ -168,8 +170,59 @@ def login(username, password):
     print(u"欢迎你 %s, 你在正在使用 xchaoinfo 写的模拟登录微博" % userID)
 
 
-if __name__ == "__main__":
-    username = input(u'用户名：')
-    password = input(u'密码：')
-    login(username, password)
+def mlogin(username, password):
+    username = base64.b64encode(username.encode('utf-8')).decode('utf-8')
+    data = {
+        "entry": "sso",
+        "gateway": "1",
+        "from": "null",
+        "savestate": "30",
+        "useticket": "0",
+        "pagerefer": "",
+        "vsnf": "1",
+        "su": username,
+        "service": "sso",
+        "sp": password,
+        "sr": "1440*900",
+        "encoding": "UTF-8",
+        "cdult": "3",
+        "domain": "sina.com.cn",
+        "prelt": "0",
+        "returntype": "TEXT",
+    }
+    login_url = r'https://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.15)'
+    #session = requests.session()
+    res = session.post(login_url, data=data)
+    if(res.status_code!=200):
+        print "--------->log err"
+        return None
+    jsonStr = res.content.decode('gbk')
+    info = json.loads(jsonStr)
+    session.cookies.save(ignore_discard=True, ignore_expires=True)
+    print info
+    return info["uid"]
+    # if info["retcode"] == "0":
+    #     cookies = session.cookies.get_dict()
+    #     cookies = [key + "=" + value for key, value in cookies.items()]
+    #     cookies = "; ".join(cookies)
+    #     session.headers["cookie"] = cookies
+    #     print cookies
+    #     #session.cookies=cookies
+    # else:
+    #     raise Exception("login fail:%s" % info["reason"])
+    # print session
+    #session.cookies = cookielib.LWPCookieJar('cookies.txt')
 
+    #return  session
+
+if __name__ == "__main__":
+    #username = input(u'用户名：')
+    #password = input(u'密码：')
+    #username="18445965029"
+    #password="wang23456"
+    #login(username, password)
+    users = cookies_new.getUser("users.txt")
+    for username in users:
+        uid=mlogin(username,users[username])
+        print uid
+    #print uid

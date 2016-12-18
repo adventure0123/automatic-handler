@@ -40,6 +40,6 @@ def saveCookiesWithqr():
     qrcode.login();
 
 if __name__ == "__main__":
-    #users=getUser("users.txt")
-    users={"xianyuekeran4926@163.com":"aaa333"}
+    users=getUser("users.txt")
+    #users={"xianyuekeran4926@163.com":"aaa333"}
     savecookies(users)

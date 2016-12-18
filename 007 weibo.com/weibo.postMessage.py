@@ -9,7 +9,7 @@ import re
 import time
 import os
 import  random
-
+import filter
 import requests
 from numpy.numarray import session
 
@@ -39,7 +39,6 @@ def postMessage(message,uid):
     data = {
         "text": message,
     }
-    print data
     url = "http://weibo.com/aj/mblog/add?ajwvr=6&__rnd=" + str(time.time() * 1000)
     headers["Referer"] = "http://weibo.com/"+str(uid)+"/profile"
     result=session.post(url,data=data,headers=headers)
@@ -152,20 +151,29 @@ if __name__ == '__main__':
     for allDir in pathDir:
         cookiePath=filePath+"/"+allDir
         session.cookies = cookielib.LWPCookieJar(cookiePath)
-        uid=getuid()
-        print uid
+        try:
+            uid=getuid()
+            print uid
+        except Exception,e:
+            print "uid error---->"+allDir
+            print e
+
         #print allDir
         #print uid
         # print '------------'
         # for id in uids:
         #     if str(id)!=str(uid):
         #         follow(id)
-        #follow(2113264853)
+        follow(6083736330)
         #msg="永远支持你:)"
         #retweet(msg,4053682817771868)
-        try:
+        '''try:
             msg=reandomMessage('weiboText/weibo.txt')
-            #postMessage(msg,uid)
+            while filter.filterStr(msg):
+                msg=reandomMessage('weiboText/weibo.txt')
+            postMessage(msg,uid)
+            #retweet("奥黑都要下台了，还在这BB。[doge]",4054095960005856)##转发微博
         except Exception,e:
-            print "error-------->"+allDir
+            print "error-------->"+allDir+"------->"+uid
+            print e'''
 
