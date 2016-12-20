@@ -9,7 +9,7 @@ import re
 import time
 import os
 import  random
-import filter
+import filterStr
 import requests
 from numpy.numarray import session
 
@@ -81,6 +81,7 @@ def retweet(message,mid):
     url="http://weibo.com/aj/v6/mblog/forward?ajwvr=6&__rnd="+ str(time.time() * 1000)
     headers["Referer"] = "http://weibo.com"
     result = session.post(url, data=data, headers=headers)
+    print result.content
     print result
 
 
@@ -164,16 +165,16 @@ if __name__ == '__main__':
         # for id in uids:
         #     if str(id)!=str(uid):
         #         follow(id)
-        follow(6083736330)
+        #follow(2567198343)
         #msg="永远支持你:)"
-        #retweet(msg,4053682817771868)
-        '''try:
+        #retweet("宇宙真是太漂亮了！！！！[哆啦A梦吃惊]",4054406444259255)
+        try:
             msg=reandomMessage('weiboText/weibo.txt')
-            while filter.filterStr(msg):
+            while filterStr.filterStr(msg):
                 msg=reandomMessage('weiboText/weibo.txt')
             postMessage(msg,uid)
             #retweet("奥黑都要下台了，还在这BB。[doge]",4054095960005856)##转发微博
         except Exception,e:
             print "error-------->"+allDir+"------->"+uid
-            print e'''
+            print e
 

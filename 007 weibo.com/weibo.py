@@ -157,11 +157,13 @@ def login(username, password):
     # print(loop_url)
     # 此出还可以加上一个是否登录成功的判断，下次改进的时候写上
     login_index = session.get(loop_url, headers=headers)
+    print login_index.content
     uuid = login_index.text
     uuid_pa = r'"uniqueid":"(.*?)"'
     uuid_res = re.findall(uuid_pa, uuid, re.S)[0]
     web_weibo_url = "http://weibo.com/%s/profile?topnav=1&wvr=6&is_all=1" % uuid_res
     weibo_page = session.get(web_weibo_url, headers=headers)
+    print weibo_page.content
     weibo_pa = r'<title>(.*?)</title>'
     # print(weibo_page.content.decode("utf-8"))
     userID = re.findall(weibo_pa, weibo_page.content.decode("utf-8", 'ignore'), re.S)[0]
@@ -171,6 +173,7 @@ def login(username, password):
 
 
 def mlogin(username, password):
+    print username
     username = base64.b64encode(username.encode('utf-8')).decode('utf-8')
     data = {
         "entry": "sso",
@@ -200,8 +203,13 @@ def mlogin(username, password):
     info = json.loads(jsonStr)
     session.cookies.save(ignore_discard=True, ignore_expires=True)
     print info
+
+
+    if info["retcode"] != "0":
+        #info = json.loads(info)
+        #print username
+        print info["reason"]
     return info["uid"]
-    # if info["retcode"] == "0":
     #     cookies = session.cookies.get_dict()
     #     cookies = [key + "=" + value for key, value in cookies.items()]
     #     cookies = "; ".join(cookies)
