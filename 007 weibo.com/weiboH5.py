@@ -10,13 +10,16 @@ import time
 import cookies_new
 import weibo_postMessage
 import filterStr
+import proxyHandler
 
+requests.adapters.DEFAULT_RETRIES = 5
 class Weibo(object):
-    def __init__(self, username, password):
+    def __init__(self, username, password, proxy):
         self.username = username
         self.password = password
         self.session = None
         self.user_agent = None
+        self.proxy = proxy
         self.login(self.username, self.password)
 
     def login(self, username, password):
@@ -41,7 +44,8 @@ class Weibo(object):
         }
         login_url = r'https://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.15)'
         session = requests.Session()
-        res = session.post(login_url, data=data)
+        res = session.post(login_url, proxies=self.proxy, data=data)
+        print res
         json_str = res.content.decode('gbk')
         info = json.loads(json_str)
         if info["retcode"] == "0":
@@ -55,27 +59,26 @@ class Weibo(object):
 
         self.session = session
 
-    #发新微博
+    # 发新微博
     def post_new(self, content):
-        st = re.findall(r'"st":"(\w+)"', self.session.get(r"http://m.weibo.cn/mblog").text)
-        addurl = "http://m.weibo.cn/mblogDeal/addAMblog"
+        st = re.findall(r'"st":"(\w+)"', self.session.get(r"https://m.weibo.cn/mblog").text)
+        addurl = "https://m.weibo.cn/mblogDeal/addAMblog"
         data = {'content': content, 'st': st, }
         headers = {
             "Host": "m.weibo.cn",
             "Connection": "keep-alive",
             "Accept": "application/json, text/javascript, */*; q=0.01",
-            "Origin": "http://m.weibo.cn",
+            "Origin": "https://m.weibo.cn",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36",
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "Referer": "http://m.weibo.cn/mblog",
+            "Referer": "https://m.weibo.cn/mblog",
             "Accept-Language": "zh-CN,zh;q=0.8"
         }
-        res = self.session.post(addurl, data, headers=headers)
+        res = self.session.post(addurl, data, proxies=self.proxy, headers=headers)
         print res.status_code
-        res=json.loads(res.content)
-        print res["msg"]
         return res.status_code
-    #转发
+
+    # 转发
     def repost(self, content, uid, repost_id):
         repost_page_url = r"http://m.weibo.cn/repost?id=%s" % repost_id
         st = re.findall(r'"st":"(\w+)"', self.session.get(repost_page_url).text)
@@ -99,7 +102,8 @@ class Weibo(object):
         }
         res = self.session.post(repost_url, data, headers=headers)
         return res.status_code
-    #评论别人的微博
+
+    # 评论别人的微博
     def comment(self, content, post_id):
         comment_page_url = r"http://m.weibo.cn/comment?id=%s" % post_id
         st = re.findall(r'"st":"(\w+)"', self.session.get(comment_page_url).text)
@@ -203,7 +207,7 @@ class Weibo(object):
         res = self.session.post(unlike_url, data, headers=headers)
         return res.status_code
 
-    #每天浏览
+    # 每天浏览
     def daily_refresh(self):
         post_list = []
         content = self.session.get('http://m.weibo.cn/index/feed?format=cards').text
@@ -321,34 +325,42 @@ class Weibo(object):
 
 if __name__ == '__main__':
     users = cookies_new.getUser("users.txt")
+    #proxy = proxyHandler.getProxy()
+    #print proxy
     for username in users:
         print username
         print users[username]
-        #uid = mlogin(username, users[username])
-        #print uid
-        weibo = Weibo(username, users[username])
-        uid=weibo.login(username,users[username])
+        proxies = {
+            "https": "http://180.153.87.22:18080"
+        }
+        print proxies
+        # uid = mlogin(username, users[username])
+        # print uid
+        res=requests.get("https://icanhazip.com/",proxies=proxies,timeout=3)
+        print res.content
+        weibo = Weibo(username, users[username], proxies)
+        uid = weibo.login(username, users[username])
         print uid
         msg = weibo_postMessage.reandomMessage('weiboText/weibo.txt')
         while filterStr.filterStr(msg):
             msg = weibo_postMessage.reandomMessage('weiboText/weibo.txt')
         print msg
         weibo.post_new(msg)
-        time.sleep(60*2)
-        #weibo.like_comment('1403915120', 'EmusLdjBy', '4053627523776987')
-    # weibo.random_repost()
-    # weibo.like_post('1990309453', '4054100666534879')
-    # weibo.unlike_post('1990309453', '4054100666534879')
-    # weibo.post_new('想妈妈了!!')
-    # weibo.comment('赢得不轻松啊', '4054100666534879')
-    # weibo.follow('1990309453')
-    # weibo.repost('C罗好帅!!', '1990309453', '4054100666534879')
-    # weibo.unfollow('1990309453')
-    # with open('./id.txt') as f:
-    #     content = f.readlines()
-    #     for line in content:
-    #         username = line.strip('\n').split('----')[0]
-    #         password = line.strip('\n').split('----')[1]
-    #         print str(username) + '\t' + str(password)
-    #         weibo = Weibo(username, password)
-    #         weibo.daily_refresh()
+        # time.sleep(30)
+        # weibo.like_comment('1403915120', 'EmusLdjBy', '4053627523776987')
+        # weibo.random_repost()
+        # weibo.like_post('1990309453', '4054100666534879')
+        # weibo.unlike_post('1990309453', '4054100666534879')
+        # weibo.post_new('想妈妈了!!')
+        # weibo.comment('赢得不轻松啊', '4054100666534879')
+        # weibo.follow('1990309453')
+        # weibo.repost('C罗好帅!!', '1990309453', '4054100666534879')
+        # weibo.unfollow('1990309453')
+        # with open('./id.txt') as f:
+        #     content = f.readlines()
+        #     for line in content:
+        #         username = line.strip('\n').split('----')[0]
+        #         password = line.strip('\n').split('----')[1]
+        #         print str(username) + '\t' + str(password)
+        #         weibo = Weibo(username, password)
+        #         weibo.daily_refresh()
