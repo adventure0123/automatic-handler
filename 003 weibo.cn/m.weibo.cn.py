@@ -76,6 +76,7 @@ def login_pre(username):
     headers["Host"] = "login.sina.com.cn"
     headers["Referer"] = index_url
     pre = session.get(pre_url, params=params, headers=headers)
+    print pre.text
     pa = r'\((.*?)\)'
     res = re.findall(pa, pre.text)
     if res == []:
@@ -152,7 +153,8 @@ def login(username, password, pincode):
 
 if __name__ == "__main__":
 
-    username = "你的用户名"
-    password = "你的密码"
+    username = "594645529@qq.com"
+    password = "ak911226"
     pincode = login_pre(username)
+    print pincode
     login(username, password, pincode)

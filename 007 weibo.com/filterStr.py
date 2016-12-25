@@ -3,7 +3,7 @@
 import  sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-filters=["图","秒拍"]
+filters=["图","秒拍","@",'分享']
 
 '''
 判断str中是否有符合过滤规则的字符串

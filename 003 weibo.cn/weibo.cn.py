@@ -69,8 +69,8 @@ else:
 
 if __name__ == "__main__":
     cha_code = get_cha(capId)
-    email = input("请输入你的邮箱账号或者手机号码")
-    password_input = input("请输入你的密码")
+    email = "594645529@qq.com"
+    password_input = "ak911226"
     postdata = {
         "mobile": email,
         "code": cha_code,

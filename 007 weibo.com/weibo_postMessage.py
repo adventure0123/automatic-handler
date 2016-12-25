@@ -12,6 +12,7 @@ import  random
 import filterStr
 import requests
 from numpy.numarray import session
+import weibo
 
 agent = 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'
 headers = {
@@ -135,6 +136,7 @@ def reandomMessage(path):
     #a =   # 1-9中生成随机数
 
 if __name__ == '__main__':
+
     #uid=getuid()
     #print uid
     #postMessage("hello",uid)

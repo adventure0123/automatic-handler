@@ -12,7 +12,7 @@ import weibo_postMessage
 import filterStr
 import proxyHandler
 
-requests.adapters.DEFAULT_RETRIES = 5
+requests.adapters.DEFAULT_RETRIES = 3
 class Weibo(object):
     def __init__(self, username, password, proxy):
         self.username = username
@@ -20,7 +20,7 @@ class Weibo(object):
         self.session = None
         self.user_agent = None
         self.proxy = proxy
-        self.login(self.username, self.password)
+        #self.login(self.username, self.password)
 
     def login(self, username, password):
         username = base64.b64encode(username.encode('utf-8')).decode('utf-8')
@@ -45,19 +45,21 @@ class Weibo(object):
         login_url = r'https://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.15)'
         session = requests.Session()
         res = session.post(login_url, proxies=self.proxy, data=data)
-        print res
         json_str = res.content.decode('gbk')
         info = json.loads(json_str)
+        print info
         if info["retcode"] == "0":
             cookies = session.cookies.get_dict()
             cookies = [key + "=" + value for key, value in cookies.items()]
             cookies = "; ".join(cookies)
             session.headers["cookie"] = cookies
+            self.session = session
+            return None
         else:
             print info['reason']
-            raise Exception("login fail:%s" % info['reason'])
+            #raise Exception("login fail:%s" % info['reason'])
+            return "error"
 
-        self.session = session
 
     # 发新微博
     def post_new(self, content):
@@ -76,6 +78,7 @@ class Weibo(object):
         }
         res = self.session.post(addurl, data, proxies=self.proxy, headers=headers)
         print res.status_code
+        print res.content
         return res.status_code
 
     # 转发
@@ -324,28 +327,95 @@ class Weibo(object):
 
 
 if __name__ == '__main__':
-    users = cookies_new.getUser("users.txt")
+    #users = cookies_new.getUser("users.txt")
+    print "start"
+    f = open("users.txt", "r")
+    lines = []
+    try:
+        lines = f.readlines()  # 读取全部内容
+    except Exception, e:
+        print e
+    finally:
+        f.close()
+
+    message=open("weiboText/weibo.txt", "r")
+    content=[]
+    try:
+        content = message.readlines()  # 读取全部内容
+    except Exception, e:
+        print e
+    finally:
+        message.close()
+    #print  random.choice(content).decode('gbk')
     #proxy = proxyHandler.getProxy()
     #print proxy
-    for username in users:
-        print username
-        print users[username]
-        proxies = {
-            "https": "http://180.153.87.22:18080"
-        }
-        print proxies
+    #proxy="125.121.120.71:808"
+    proxy=None
+    time=0
+    usetime=0
+    index=0
+    proxies=None
+    while index<len(lines):
+        users=lines[index]
+        s = users.strip("\n").split("----")
+        user=s[0]
+        password=s[1]
+        #print s
+        print user
+        print password
+        if proxy==None or usetime>2:
+            proxyUrl="http://tpv.daxiangdaili.com/ip/?tid=558661331252937&num=1&category=2&protocol=https&sortby=time&filter=on"
+            proxy=requests.get(url=proxyUrl).content
+            if proxy=="ERROR|没有找到符合条件的IP":
+                print "no ip available"
+                break
+            print proxy
+            proxies = {
+                "https": "http://"+proxy
+            }
+            time=time+1
+            print proxies
         # uid = mlogin(username, users[username])
         # print uid
-        res=requests.get("https://icanhazip.com/",proxies=proxies,timeout=3)
-        print res.content
-        weibo = Weibo(username, users[username], proxies)
-        uid = weibo.login(username, users[username])
-        print uid
-        msg = weibo_postMessage.reandomMessage('weiboText/weibo.txt')
-        while filterStr.filterStr(msg):
-            msg = weibo_postMessage.reandomMessage('weiboText/weibo.txt')
-        print msg
-        weibo.post_new(msg)
+        try:
+            res=requests.get("https://icanhazip.com/",proxies=proxies,timeout=3)
+            print res.content
+            weibo = Weibo(user, password, proxies)
+            result=weibo.login(user, password)
+            if result!=None:#有错误写入文件,下一个号登陆
+                errMsg=user+"----"+password+'\r\n'
+                error = open("error.txt", "a")
+                error.write(errMsg)
+                error.close()
+                index = index + 1
+                proxy=None
+                continue
+            msg = random.choice(content)
+            while filterStr.filterStr(msg):
+                msg = random.choice(content)
+            #print msg
+            print msg.decode('gbk')
+            weibo.post_new(msg)
+            #第二次
+            # msg = random.choice(content)
+            # while filterStr.filterStr(msg):
+            #     msg = random.choice(content)
+            # print msg
+            # print msg.decode('gbk')
+            # weibo.post_new(msg)
+
+            weibo.follow('5721826695')
+            weibo.repost('转发微博', '5400531923', '4056230731077908')
+            weibo.follow('2113264853')
+            weibo.follow('5400531923')
+            index=index+1
+            usetime=usetime+1
+        except Exception ,e:
+            print e
+            proxy = None
+            usetime=0
+        #time.sleep(1)#休眠1秒
+    print time
         # time.sleep(30)
         # weibo.like_comment('1403915120', 'EmusLdjBy', '4053627523776987')
         # weibo.random_repost()
