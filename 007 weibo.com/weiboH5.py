@@ -405,7 +405,7 @@ if __name__ == '__main__':
             # weibo.post_new(msg)
 
             weibo.follow('5721826695')
-            weibo.repost('转发微博', '5400531923', '4056230731077908')
+            #weibo.repost('转发微博', '5400531923', '4056230731077908')
             weibo.follow('2113264853')
             weibo.follow('5400531923')
             index=index+1
