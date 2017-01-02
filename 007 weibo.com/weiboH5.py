@@ -7,10 +7,7 @@ import re
 import requests
 import random
 import time
-import cookies_new
-import weibo_postMessage
 import filterStr
-import proxyHandler
 
 requests.adapters.DEFAULT_RETRIES = 3
 class Weibo(object):
@@ -48,17 +45,22 @@ class Weibo(object):
         json_str = res.content.decode('gbk')
         info = json.loads(json_str)
         print info
+        result={}
         if info["retcode"] == "0":
             cookies = session.cookies.get_dict()
             cookies = [key + "=" + value for key, value in cookies.items()]
             cookies = "; ".join(cookies)
             session.headers["cookie"] = cookies
             self.session = session
-            return None
+            result["error"]=False
+            result["uid"]=info["uid"]
+
         else:
             print info['reason']
             #raise Exception("login fail:%s" % info['reason'])
-            return "error"
+            result["error"]=True
+            result["msg"]=info['reason']
+        return result
 
 
     # 发新微博
@@ -77,9 +79,9 @@ class Weibo(object):
             "Accept-Language": "zh-CN,zh;q=0.8"
         }
         res = self.session.post(addurl, data, proxies=self.proxy, headers=headers)
-        print res.status_code
-        print res.content
-        return res.status_code
+        json_str = res.content.decode('gbk')
+        info = json.loads(json_str)
+        return info
 
     # 转发
     def repost(self, content, uid, repost_id):
@@ -144,6 +146,7 @@ class Weibo(object):
             "Accept-Language": "zh-CN,zh;q=0.8"
         }
         res = self.session.post(follow_url, headers=headers)
+        print res.content
         return res.status_code
 
     def unfollow(self, uid):
@@ -325,6 +328,12 @@ class Weibo(object):
         print res.status_code
         return res.status_code
 
+    def writeError(self,msg):
+        #errMsg = user + "----" + password + '\r\n'
+        error = open("error.txt", "a")
+        error.write(msg)
+        error.close()
+
 
 if __name__ == '__main__':
     #users = cookies_new.getUser("users.txt")
@@ -346,91 +355,84 @@ if __name__ == '__main__':
         print e
     finally:
         message.close()
-    #print  random.choice(content).decode('gbk')
-    #proxy = proxyHandler.getProxy()
-    #print proxy
-    #proxy="125.121.120.71:808"
-    proxy=None
-    time=0
-    usetime=0
     index=0
-    proxies=None
     while index<len(lines):
         users=lines[index]
         s = users.strip("\n").split("----")
         user=s[0]
         password=s[1]
-        #print s
         print user
         print password
-        if proxy==None or usetime>2:
-            proxyUrl="http://tpv.daxiangdaili.com/ip/?tid=558661331252937&num=1&category=2&protocol=https&sortby=time&filter=on"
-            proxy=requests.get(url=proxyUrl).content
-            if proxy=="ERROR|没有找到符合条件的IP":
-                print "no ip available"
-                break
-            print proxy
-            proxies = {
-                "https": "http://"+proxy
-            }
-            time=time+1
-            print proxies
-        # uid = mlogin(username, users[username])
-        # print uid
+        while True:
+            try:
+                res = requests.get("https://icanhazip.com/", timeout=3)
+                if(res.status_code==200):
+                    print res.content
+                    break
+            except Exception ,e:
+                time.sleep(1)
+
         try:
-            res=requests.get("https://icanhazip.com/",proxies=proxies,timeout=3)
-            print res.content
-            weibo = Weibo(user, password, proxies)
+            weibo = Weibo(user, password,None)
             result=weibo.login(user, password)
-            if result!=None:#有错误写入文件,下一个号登陆
-                errMsg=user+"----"+password+'\r\n'
-                error = open("error.txt", "a")
-                error.write(errMsg)
-                error.close()
-                index = index + 1
-                proxy=None
-                continue
-            msg = random.choice(content)
-            while filterStr.filterStr(msg):
-                msg = random.choice(content)
-            #print msg
-            print msg.decode('gbk')
-            weibo.post_new(msg)
-            #第二次
+            # if result["error"]==True:#有错误写入文件,下一个号登陆
+            #     errMsg=user+"----"+password+"----"+result["msg"]+'\n'
+            #     weibo.writeError(errMsg)
+            #     index=index+1
+            #     continue
             # msg = random.choice(content)
             # while filterStr.filterStr(msg):
             #     msg = random.choice(content)
-            # print msg
+            # print type(msg)
+            # msg = msg[0:139]
             # print msg.decode('gbk')
-            # weibo.post_new(msg)
+            # code=weibo.post_new(msg)
+            # print code
+            # if code["ok"]!=1:
+            #     errMsg = user + "----" + password + "----" + code["msg"] + '\n'
+            #     weibo.writeError(errMsg)
+            #     index=index+1
+            #     continue
+            # time.sleep(40)
+            # #第二次
+            # msg = random.choice(content)
+            # while filterStr.filterStr(msg):
+            #     msg = random.choice(content)
+            # msg = msg[0:139]
+            # print msg.decode('gbk')
+            # code=weibo.post_new(msg)
+            # print code
+            # if code["ok"]!=1:
+            #     errMsg = user + "----" + password + "----" + code["msg"] + '\n'
+            #     weibo.writeError(errMsg)
+            #     index=index+1
+            #     continue
 
-            weibo.follow('5721826695')
+            #随机关注
+            for i in range(0,5):
+                randomFollow = random.choice(lines);
+                u = randomFollow.strip("\n").split("----")
+                if len(u) == 3:
+                    follower = u[2]
+                    print follower
+                    weibo.follow(follower)
+                    time.sleep(1)
+
+            #weibo.follow('5721826695')
             #weibo.repost('转发微博', '5400531923', '4056230731077908')
-            weibo.follow('2113264853')
-            weibo.follow('5400531923')
-            index=index+1
-            usetime=usetime+1
+            #weibo.follow('2113264853')
+            #weibo.follow('5400531923')
+            #正确写入文件
+            success = user + "----" + password +'----'+result['uid']+'\n'
+            successFile = open("success.txt", "a")
+            successFile.write(success)
+            successFile.close()
         except Exception ,e:
             print e
-            proxy = None
-            usetime=0
-        #time.sleep(1)#休眠1秒
-    print time
-        # time.sleep(30)
-        # weibo.like_comment('1403915120', 'EmusLdjBy', '4053627523776987')
-        # weibo.random_repost()
-        # weibo.like_post('1990309453', '4054100666534879')
-        # weibo.unlike_post('1990309453', '4054100666534879')
-        # weibo.post_new('想妈妈了!!')
-        # weibo.comment('赢得不轻松啊', '4054100666534879')
-        # weibo.follow('1990309453')
-        # weibo.repost('C罗好帅!!', '1990309453', '4054100666534879')
-        # weibo.unfollow('1990309453')
-        # with open('./id.txt') as f:
-        #     content = f.readlines()
-        #     for line in content:
-        #         username = line.strip('\n').split('----')[0]
-        #         password = line.strip('\n').split('----')[1]
-        #         print str(username) + '\t' + str(password)
-        #         weibo = Weibo(username, password)
-        #         weibo.daily_refresh()
+            errMsg = user + "----" + password + '\n'
+            weibo.writeError(errMsg)
+            #error = open("error.txt", "a")
+            #error.write(errMsg)
+            #error.close()
+        time.sleep(15)
+        index=index+1
